@@ -10,16 +10,10 @@ const STATES = {
   containerCli: 'containerCli'
 };
 
-const SUPPORTED_CLIS = ['docker', 'podman', 'nerdctl'];
-
 async function cleanup() {
   try {
     const registriesState = core.getState(STATES.registries);
-    // Retrieve CLI used during login; fall back to 'docker' if state not set
-    // (e.g., if index.js threw before saveState or older action version)
-    // Validate against supported CLIs to prevent command injection
-    const rawCli = core.getState(STATES.containerCli) || 'docker';
-    const containerCli = SUPPORTED_CLIS.includes(rawCli) ? rawCli : 'docker';
+    const containerCli = core.getState(STATES.containerCli) || 'docker';
 
     if (registriesState) {
       const registries = registriesState.split(',');
