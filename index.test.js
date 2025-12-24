@@ -603,5 +603,16 @@ describe('Login to ECR Public', () => {
       
       await expect(detectContainerCli('podman')).rejects.toThrow('No container CLI available. Tried: podman');
     });
+
+    test('handles exec.exec throwing exception during detection', async () => {
+      exec.exec.mockImplementationOnce(() => {
+        throw new Error('ENOENT: command not found');
+      }).mockReturnValueOnce(0);
+      
+      const cli = await detectContainerCli('');
+      
+      expect(cli).toBe('podman');
+      expect(core.debug).toHaveBeenCalledWith(expect.stringContaining("CLI 'docker' not available: ENOENT"));
+    });
   });
 });
