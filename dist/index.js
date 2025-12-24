@@ -58,10 +58,17 @@ function configureProxy(httpProxy) {
   return null;
 }
 
-async function detectContainerCli(preferredCli) {
-  const clis = preferredCli ? [preferredCli] : ['docker', 'podman', 'nerdctl'];
+async function detectContainerCli(preferredCli) {  
+  const SUPPORTED_CLIS = ['docker', 'podman', 'nerdctl'];
+
+  // Validate first if specific CLI requested
+  if (preferredCli && !SUPPORTED_CLIS.includes(preferredCli)) {
+    throw new Error(`Invalid input for 'container-cli', possible options are [${SUPPORTED_CLIS.join(', ')}]`);
+  }
   
-  for (const cli of clis) {
+  const containerClis = preferredCli ? [preferredCli] : SUPPORTED_CLIS;
+  
+  for (const cli of containerClis) {
     try {
       const exitCode = await exec.exec(cli, ['--version'], {
         silent: true,
@@ -76,10 +83,8 @@ async function detectContainerCli(preferredCli) {
     }
   }
   
-  if (preferredCli) {
-    throw new Error(`Container CLI '${preferredCli}' not available. Check if installed and in PATH.`);
-  }
-  throw new Error(`No container CLI available. Tried: docker, podman, nerdctl. Please install docker, podman, or nerdctl.`);
+  const attempted = containerClis.join(', ');
+  throw new Error(`Container CLI not available. Tried: ${attempted}`);
 }
 
 async function getEcrAuthTokenWrapper(authTokenRequest, httpsProxyAgent) {
@@ -161,11 +166,7 @@ async function run() {
     // Configures proxy
     const httpsProxyAgent = configureProxy(httpProxy);
 
-    // Validate and detect container CLI
-    const SUPPORTED_CLIS = ['docker', 'podman', 'nerdctl'];
-    if (containerCliInput && !SUPPORTED_CLIS.includes(containerCliInput)) {
-      throw new Error(`Invalid input for '${INPUTS.containerCli}', possible options are [${SUPPORTED_CLIS.join(', ')}]`);
-    }
+    // Detect container CLI
     containerCli = await detectContainerCli(containerCliInput);
 
     // Get the ECR/ECR Public authorization token(s)

@@ -612,13 +612,13 @@ describe('Login to ECR Public', () => {
     test('throws error when no CLI available', async () => {
       exec.exec.mockReturnValue(1);
       
-      await expect(detectContainerCli('')).rejects.toThrow('No container CLI available. Tried: docker, podman, nerdctl. Please install docker, podman, or nerdctl.');
+      await expect(detectContainerCli('')).rejects.toThrow('Container CLI not available. Tried: docker, podman, nerdctl');
     });
 
     test('throws error when specified CLI unavailable', async () => {
       exec.exec.mockReturnValue(1);
       
-      await expect(detectContainerCli('podman')).rejects.toThrow("Container CLI 'podman' not available. Check if installed and in PATH.");
+      await expect(detectContainerCli('podman')).rejects.toThrow('Container CLI not available. Tried: podman');
     });
 
     test('handles exec.exec throwing exception during detection', async () => {

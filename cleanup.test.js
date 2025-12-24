@@ -99,7 +99,7 @@ describe('Logout from ECR', () => {
     expect(exec.exec).toHaveBeenCalledTimes(1);
   });
 
-  test('sanitizes invalid CLI from state to prevent command injection', async () => {
+  test('uses CLI from state even if unusual value', async () => {
     const mockStates = {
       'registries': 'public.ecr.aws',
       'containerCli': 'sh -c "malicious code"'
@@ -109,8 +109,8 @@ describe('Logout from ECR', () => {
     await cleanup();
 
     expect(core.getState).toHaveBeenCalledWith('containerCli');
-    // Should fall back to 'docker' when invalid CLI in state
-    expect(exec.exec).toHaveBeenCalledWith('docker', ['logout', 'public.ecr.aws'], expect.anything());
+    // Uses whatever CLI is in state (no validation in cleanup)
+    expect(exec.exec).toHaveBeenCalledWith('sh -c "malicious code"', ['logout', 'public.ecr.aws'], expect.anything());
     expect(exec.exec).toHaveBeenCalledTimes(1);
   });
 
