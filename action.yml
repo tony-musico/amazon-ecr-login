@@ -22,7 +22,7 @@ inputs:
       If 'public' is given as input to 'registry-type', this input is ignored.
     required: false
   registry-type:
-    description: >
+    description: >-
       Which ECR registry type to log into.
       Options: [private, public]
     required: false

@@ -453,6 +453,23 @@ describe('Login to ECR Public', () => {
       expect(core.setFailed).toHaveBeenCalledWith(`Invalid input for 'registry-type', possible options are [private, public]`);
       expect(core.saveState).toHaveBeenCalledTimes(0);
     });
+    test('error is caught by core.setFailed for invalid container-cli input', async () => {
+      const mockInputs = {
+        'mask-password': '',
+        'registries': '',
+        'registry-type': 'public',
+        'container-cli': 'buildah',
+        'skip-logout': ''
+      };
+      core.getInput = jest.fn().mockImplementation(mockGetInput(mockInputs));
+      ecrPublicMock.on(GetAuthorizationTokenCommandPublic).resolves(defaultAuthToken);
+
+      await run();
+
+      expect(core.setFailed).toHaveBeenCalledWith(`Invalid input for 'container-cli', possible options are [docker, podman, nerdctl]`);
+      expect(core.saveState).toHaveBeenCalledTimes(0);
+    });
+
 
     test('outputs the registry URI', async () => {
       ecrPublicMock.on(GetAuthorizationTokenCommandPublic).resolves(defaultAuthToken);

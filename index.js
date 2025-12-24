@@ -137,7 +137,7 @@ async function run() {
   const skipLogout = core.getInput(INPUTS.skipLogout, { required: false }).toLowerCase() === 'true';
 
   const registryUriState = [];
-  let containerCli = 'docker';
+  let containerCli;
 
   try {
     if (registryType !== REGISTRY_TYPES.private && registryType !== REGISTRY_TYPES.public) {
@@ -153,7 +153,11 @@ async function run() {
     // Configures proxy
     const httpsProxyAgent = configureProxy(httpProxy);
 
-    // Detect container CLI
+    // Validate and detect container CLI
+    const SUPPORTED_CLIS = ['docker', 'podman', 'nerdctl'];
+    if (containerCliInput && !SUPPORTED_CLIS.includes(containerCliInput)) {
+      throw new Error(`Invalid input for '${INPUTS.containerCli}', possible options are [${SUPPORTED_CLIS.join(', ')}]`);
+    }
     containerCli = await detectContainerCli(containerCliInput);
 
     // Get the ECR/ECR Public authorization token(s)

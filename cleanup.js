@@ -13,6 +13,8 @@ const STATES = {
 async function cleanup() {
   try {
     const registriesState = core.getState(STATES.registries);
+    // Retrieve CLI used during login; fall back to 'docker' if state not set
+    // (e.g., if index.js threw before saveState or older action version)
     const containerCli = core.getState(STATES.containerCli) || 'docker';
 
     if (registriesState) {
