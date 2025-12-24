@@ -22,11 +22,17 @@ inputs:
       If 'public' is given as input to 'registry-type', this input is ignored.
     required: false
   registry-type:
-    description: >-
+    description: >
       Which ECR registry type to log into.
       Options: [private, public]
     required: false
     default: private
+  container-cli:
+    description: >
+      Container CLI to use for login/logout.
+      If not specified, auto-detects in order: docker, podman, nerdctl.
+      Options: [docker, podman, nerdctl]
+    required: false
   skip-logout:
     description: >-
       Whether to skip explicit logout of the registries during post-job cleanup.

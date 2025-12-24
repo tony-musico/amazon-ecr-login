@@ -13,6 +13,7 @@ const INPUTS = {
   maskPassword: 'mask-password',
   registries: 'registries',
   registryType: 'registry-type',
+  containerCli: 'container-cli',
   skipLogout: 'skip-logout'
 };
 
@@ -23,7 +24,8 @@ const OUTPUTS = {
 };
 
 const STATES = {
-  registries: 'registries'
+  registries: 'registries',
+  containerCli: 'containerCli'
 };
 
 const REGISTRY_TYPES = {
@@ -48,6 +50,28 @@ function configureProxy(httpProxy) {
     return new HttpsProxyAgent(proxyToSet);
   }
   return null;
+}
+
+async function detectContainerCli(preferredCli) {
+  const clis = preferredCli ? [preferredCli] : ['docker', 'podman', 'nerdctl'];
+  
+  for (const cli of clis) {
+    try {
+      const exitCode = await exec.exec(cli, ['--version'], {
+        silent: true,
+        ignoreReturnCode: true
+      });
+      if (exitCode === 0) {
+        core.info(`Using container CLI: ${cli}`);
+        return cli;
+      }
+    } catch (error) {
+      core.debug(`CLI '${cli}' not available: ${error.message}`);
+    }
+  }
+  
+  const attempted = preferredCli || 'docker, podman, nerdctl';
+  throw new Error(`No container CLI available. Tried: ${attempted}`);
 }
 
 async function getEcrAuthTokenWrapper(authTokenRequest, httpsProxyAgent) {
@@ -109,9 +133,11 @@ async function run() {
   const maskPassword = (core.getInput(INPUTS.maskPassword, { required: false }).toLowerCase() || 'true') !== 'false';
   const registries = core.getInput(INPUTS.registries, { required: false });
   const registryType = core.getInput(INPUTS.registryType, { required: false }).toLowerCase() || REGISTRY_TYPES.private;
+  const containerCliInput = (core.getInput(INPUTS.containerCli, { required: false }) || '').toLowerCase();
   const skipLogout = core.getInput(INPUTS.skipLogout, { required: false }).toLowerCase() === 'true';
 
   const registryUriState = [];
+  let containerCli = 'docker';
 
   try {
     if (registryType !== REGISTRY_TYPES.private && registryType !== REGISTRY_TYPES.public) {
@@ -126,6 +152,9 @@ async function run() {
 
     // Configures proxy
     const httpsProxyAgent = configureProxy(httpProxy);
+
+    // Detect container CLI
+    containerCli = await detectContainerCli(containerCliInput);
 
     // Get the ECR/ECR Public authorization token(s)
     const authTokenRequest = {};
@@ -155,10 +184,10 @@ async function run() {
         core.setOutput(OUTPUTS.registry, registryUri);
       }
 
-      // Execute the docker login command
+      // Execute the container login command
       let doLoginStdout = '';
       let doLoginStderr = '';
-      const exitCode = await exec.exec('docker', ['login', '-u', creds[0], '-p', creds[1], proxyEndpoint], {
+      const exitCode = await exec.exec(containerCli, ['login', '-u', creds[0], '-p', creds[1], proxyEndpoint], {
         silent: true,
         ignoreReturnCode: true,
         listeners: {
@@ -195,6 +224,7 @@ async function run() {
   if (registryUriState.length) {
     if (!skipLogout) {
       core.saveState(STATES.registries, registryUriState.join());
+      core.saveState(STATES.containerCli, containerCli);
     }
     core.debug(`'${INPUTS.skipLogout}' is ${skipLogout} for ${registryUriState.length} registries.`);
   }
@@ -202,6 +232,7 @@ async function run() {
 
 module.exports = {
   configureProxy,
+  detectContainerCli,
   run,
   replaceSpecialCharacters
 };
