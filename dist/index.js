@@ -76,8 +76,10 @@ async function detectContainerCli(preferredCli) {
     }
   }
   
-  const attempted = preferredCli || 'docker, podman, nerdctl';
-  throw new Error(`No container CLI available. Tried: ${attempted}`);
+  if (preferredCli) {
+    throw new Error(`Container CLI '${preferredCli}' not available. Check if installed and in PATH.`);
+  }
+  throw new Error(`No container CLI available. Tried: docker, podman, nerdctl. Please install docker, podman, or nerdctl.`);
 }
 
 async function getEcrAuthTokenWrapper(authTokenRequest, httpsProxyAgent) {

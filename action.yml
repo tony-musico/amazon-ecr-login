@@ -30,7 +30,7 @@ inputs:
   container-cli:
     description: >
       Container CLI to use for login/logout.
-      If not specified, auto-detects in order: docker, podman, nerdctl.
+      If not specified, auto-detects first available in order: docker, podman, nerdctl.
       Options: [docker, podman, nerdctl]
     required: false
   skip-logout:

@@ -99,6 +99,35 @@ describe('Logout from ECR', () => {
     expect(exec.exec).toHaveBeenCalledTimes(1);
   });
 
+  test('sanitizes invalid CLI from state to prevent command injection', async () => {
+    const mockStates = {
+      'registries': 'public.ecr.aws',
+      'containerCli': 'sh -c "malicious code"'
+    };
+    core.getState = jest.fn().mockImplementation(mockGetState(mockStates));
+
+    await cleanup();
+
+    expect(core.getState).toHaveBeenCalledWith('containerCli');
+    // Should fall back to 'docker' when invalid CLI in state
+    expect(exec.exec).toHaveBeenCalledWith('docker', ['logout', 'public.ecr.aws'], expect.anything());
+    expect(exec.exec).toHaveBeenCalledTimes(1);
+  });
+
+  test('handles empty string CLI from state', async () => {
+    const mockStates = {
+      'registries': 'public.ecr.aws',
+      'containerCli': ''
+    };
+    core.getState = jest.fn().mockImplementation(mockGetState(mockStates));
+
+    await cleanup();
+
+    // Empty string should fall back to 'docker'
+    expect(exec.exec).toHaveBeenCalledWith('docker', ['logout', 'public.ecr.aws'], expect.anything());
+    expect(exec.exec).toHaveBeenCalledTimes(1);
+  });
+
   test('error is caught by core.setFailed for failed docker logout', async () => {
     exec.exec.mockReturnValue(1);
 

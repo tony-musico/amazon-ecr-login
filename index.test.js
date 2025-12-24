@@ -612,13 +612,13 @@ describe('Login to ECR Public', () => {
     test('throws error when no CLI available', async () => {
       exec.exec.mockReturnValue(1);
       
-      await expect(detectContainerCli('')).rejects.toThrow('No container CLI available. Tried: docker, podman, nerdctl');
+      await expect(detectContainerCli('')).rejects.toThrow('No container CLI available. Tried: docker, podman, nerdctl. Please install docker, podman, or nerdctl.');
     });
 
     test('throws error when specified CLI unavailable', async () => {
       exec.exec.mockReturnValue(1);
       
-      await expect(detectContainerCli('podman')).rejects.toThrow('No container CLI available. Tried: podman');
+      await expect(detectContainerCli('podman')).rejects.toThrow("Container CLI 'podman' not available. Check if installed and in PATH.");
     });
 
     test('handles exec.exec throwing exception during detection', async () => {
@@ -630,6 +630,20 @@ describe('Login to ECR Public', () => {
       
       expect(cli).toBe('podman');
       expect(core.debug).toHaveBeenCalledWith(expect.stringContaining("CLI 'docker' not available: ENOENT"));
+    });
+
+    test('handles empty string as auto-detect', async () => {
+      const cli = await detectContainerCli('');
+      
+      expect(cli).toBe('docker');
+      expect(exec.exec).toHaveBeenCalledWith('docker', ['--version'], expect.anything());
+    });
+
+    test('validates that uppercase/whitespace handled by input validation layer', async () => {
+      // Input validation in index.js converts to lowercase before calling detectContainerCli
+      // This test ensures lowercase input works correctly
+      const cli = await detectContainerCli('podman');
+      expect(cli).toBe('podman');
     });
   });
 });
