@@ -1,24 +1,34 @@
 ## Amazon ECR "Login" Action for GitHub Actions
 
-Logs in the local Docker client to one or more Amazon ECR Private registries or an Amazon ECR Public registry.
+Logs in the local Docker client to one or more Amazon ECR Private registries or an Amazon ECR Public registry. Supports Docker, Buildah, Podman, and nerdctl.
 
 **Table of Contents**
 
 <!-- toc -->
 
+- [Amazon ECR "Login" Action for GitHub Actions](#amazon-ecr-login-action-for-github-actions)
 - [New v2 Release](#new-v2-release)
-- [Example of Usage](#examples-of-usage)
+- [Examples of Usage](#examples-of-usage)
   - [Building and pushing an image](#building-and-pushing-an-image)
-  - [Using an image as a service](#using-an-image-as-a-service)
+    - [Before each of the following examples, make sure to include the following:](#before-each-of-the-following-examples-make-sure-to-include-the-following)
+    - [Login to Amazon ECR Private, then build and push a Docker image:](#login-to-amazon-ecr-private-then-build-and-push-a-docker-image)
+    - [Login to Amazon ECR Public, then build and push a Docker image:](#login-to-amazon-ecr-public-then-build-and-push-a-docker-image)
+    - [Login to Amazon ECR Private, then package and push a Helm chart:](#login-to-amazon-ecr-private-then-package-and-push-a-helm-chart)
+    - [Login to Amazon ECR Public, then package and push a Helm chart:](#login-to-amazon-ecr-public-then-package-and-push-a-helm-chart)
+  - [Other use-cases](#other-use-cases)
+    - [Login to ECR on multiple AWS accounts](#login-to-ecr-on-multiple-aws-accounts)
+    - [Run an image as a service](#run-an-image-as-a-service)
 - [Credentials](#credentials)
-  - [AWS credentials](#aws-credentials)
-  - [Docker credentials](#docker-credentials)
+  - [AWS Credentials](#aws-credentials)
+  - [Docker Credentials](#docker-credentials)
 - [Self-Hosted Runners](#self-hosted-runners)
-  - [Proxy configuration](#proxy-configuration)
+  - [Proxy Configuration](#proxy-configuration)
 - [Permissions](#permissions)
   - [ECR Private](#ecr-private)
   - [ECR Public](#ecr-public)
 - [Troubleshooting](#troubleshooting)
+  - [Configure credentials](#configure-credentials)
+  - [Inputs](#inputs)
 - [License Summary](#license-summary)
 - [Security Disclosures](#security-disclosures)
 
