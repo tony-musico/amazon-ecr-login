@@ -53,7 +53,7 @@ function configureProxy(httpProxy) {
 }
 
 async function detectContainerCli(preferredCli) {  
-  const SUPPORTED_CLIS = ['docker', 'podman', 'nerdctl'];
+  const SUPPORTED_CLIS = ['docker', 'buildah', 'podman', 'nerdctl'];
 
   // Validate first if specific CLI requested
   if (preferredCli && !SUPPORTED_CLIS.includes(preferredCli)) {

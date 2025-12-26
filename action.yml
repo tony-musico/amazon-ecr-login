@@ -30,8 +30,8 @@ inputs:
   container-cli:
     description: >
       Container CLI to use for login/logout.
-      If not specified, auto-detects: docker, podman, nerdctl.
-      Options: [docker, podman, nerdctl]
+      If not specified, auto-detects: docker, buildah, podman, nerdctl.
+      Options: [docker, buildah, podman, nerdctl]
     required: false
   skip-logout:
     description: >-

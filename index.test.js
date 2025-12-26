@@ -458,7 +458,7 @@ describe('Login to ECR Public', () => {
         'mask-password': '',
         'registries': '',
         'registry-type': 'public',
-        'container-cli': 'buildah',
+        'container-cli': 'invalid-cli',
         'skip-logout': ''
       };
       core.getInput = jest.fn().mockImplementation(mockGetInput(mockInputs));
@@ -466,7 +466,7 @@ describe('Login to ECR Public', () => {
 
       await run();
 
-      expect(core.setFailed).toHaveBeenCalledWith(`Invalid input for 'container-cli', possible options are [docker, podman, nerdctl]`);
+      expect(core.setFailed).toHaveBeenCalledWith(`Invalid input for 'container-cli', possible options are [docker, buildah, podman, nerdctl]`);
       expect(core.saveState).toHaveBeenCalledTimes(0);
     });
 
@@ -582,23 +582,23 @@ describe('Login to ECR Public', () => {
       expect(exec.exec).toHaveBeenCalledWith('docker', ['--version'], expect.anything());
     });
 
-    test('detects podman when docker unavailable', async () => {
+    test('detects buildah when docker unavailable', async () => {
       exec.exec.mockReturnValueOnce(1).mockReturnValueOnce(0);
       
       const cli = await detectContainerCli('');
       
-      expect(cli).toBe('podman');
+      expect(cli).toBe('buildah');
       expect(exec.exec).toHaveBeenNthCalledWith(1, 'docker', ['--version'], expect.anything());
-      expect(exec.exec).toHaveBeenNthCalledWith(2, 'podman', ['--version'], expect.anything());
+      expect(exec.exec).toHaveBeenNthCalledWith(2, 'buildah', ['--version'], expect.anything());
     });
 
-    test('detects nerdctl when docker and podman unavailable', async () => {
-      exec.exec.mockReturnValueOnce(1).mockReturnValueOnce(1).mockReturnValueOnce(0);
+    test('detects nerdctl when docker, buildah and podman unavailable', async () => {
+      exec.exec.mockReturnValueOnce(1).mockReturnValueOnce(1).mockReturnValueOnce(1).mockReturnValueOnce(0);
       
       const cli = await detectContainerCli('');
       
       expect(cli).toBe('nerdctl');
-      expect(exec.exec).toHaveBeenNthCalledWith(3, 'nerdctl', ['--version'], expect.anything());
+      expect(exec.exec).toHaveBeenNthCalledWith(4, 'nerdctl', ['--version'], expect.anything());
     });
 
     test('uses specified container CLI when provided', async () => {
@@ -612,7 +612,7 @@ describe('Login to ECR Public', () => {
     test('throws error when no CLI available', async () => {
       exec.exec.mockReturnValue(1);
       
-      await expect(detectContainerCli('')).rejects.toThrow('Container CLI not available. Tried: docker, podman, nerdctl');
+      await expect(detectContainerCli('')).rejects.toThrow('Container CLI not available. Tried: docker, buildah, podman, nerdctl');
     });
 
     test('throws error when specified CLI unavailable', async () => {
@@ -628,7 +628,7 @@ describe('Login to ECR Public', () => {
       
       const cli = await detectContainerCli('');
       
-      expect(cli).toBe('podman');
+      expect(cli).toBe('buildah');
       expect(core.debug).toHaveBeenCalledWith(expect.stringContaining("CLI 'docker' not available: ENOENT"));
     });
 
